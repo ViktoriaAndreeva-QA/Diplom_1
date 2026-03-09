@@ -3,25 +3,7 @@ from praktikum.burger import Burger
 from praktikum.bun import Bun
 from praktikum.ingredient import Ingredient
 from praktikum.ingredient_types import INGREDIENT_TYPE_FILLING, INGREDIENT_TYPE_SAUCE
-
-
-TEST_BUNS = [
-    ("black bun", 100),
-    ("white bun", 200),
-    ("red bun", 300)
-]
-
-TEST_SAUCES = [
-    (INGREDIENT_TYPE_SAUCE, "hot sauce", 100),
-    (INGREDIENT_TYPE_SAUCE, "sour cream", 200),
-    (INGREDIENT_TYPE_SAUCE, "chili sauce", 300)
-]
-
-TEST_FILLINGS = [
-    (INGREDIENT_TYPE_FILLING, "cutlet", 100),
-    (INGREDIENT_TYPE_FILLING, "dinosaur", 200),
-    (INGREDIENT_TYPE_FILLING, "sausage", 300)
-]
+from data.test_data import BUNS, SAUCES, FILLINGS
 
 
 class TestBurger:
@@ -30,7 +12,7 @@ class TestBurger:
     #===============================================
     # Тесты для метода set_buns
     #===============================================
-    @pytest.mark.parametrize("bun_name, bun_price", TEST_BUNS)
+    @pytest.mark.parametrize("bun_name, bun_price", BUNS)
     def test_set_buns_choosing_a_bun_success(self, burger, bun_name, bun_price):
         """Выбор булочки"""
         bun = Bun(bun_name, bun_price)
@@ -39,9 +21,9 @@ class TestBurger:
         assert burger.bun == bun
 
     @pytest.mark.parametrize("first_bun_data, second_bun_data", [
-        (TEST_BUNS[0], TEST_BUNS[1]),
-        (TEST_BUNS[1], TEST_BUNS[2]),
-        (TEST_BUNS[2], TEST_BUNS[0])
+        (BUNS[0], BUNS[1]),
+        (BUNS[1], BUNS[2]),
+        (BUNS[2], BUNS[0])
     ])
     def test_set_buns_change_bun_success(self, burger, first_bun_data, second_bun_data):
         """Проверяет, что можно заменить одну булочку на другую (разные комбинации)"""
@@ -57,8 +39,8 @@ class TestBurger:
     # Тесты для метода add_ingredient
     #===============================================
     @pytest.mark.parametrize("ingredient_data", [
-        (TEST_SAUCES[1]),
-        (TEST_FILLINGS[2]),
+        (SAUCES[1]),
+        (FILLINGS[2]),
     ])
     def test_add_ingredient_adds_one_ingredient_success(self,burger, ingredient_data):
         """Проверяет успешное добавление одного ингредиента (соус или начинка)"""
@@ -71,8 +53,8 @@ class TestBurger:
 
     def test_add_ingredient_adds_sauce_and_filling_success(self, burger):
         """Проверяет успешное добавление соуса и начинки в бургер"""
-        sauce = Ingredient(*TEST_SAUCES[0])
-        filling = Ingredient(*TEST_FILLINGS[0])
+        sauce = Ingredient(*SAUCES[0])
+        filling = Ingredient(*FILLINGS[0])
 
         burger.add_ingredient(sauce)
         burger.add_ingredient(filling)
@@ -85,16 +67,16 @@ class TestBurger:
 
     def test_add_ingredient_adds_multiple_same_ingredients_success(self, burger):
         """Проверяет успешное добавление нескольких одинаковых ингредиентов (например, двойной соус)"""
-        burger.add_ingredient(Ingredient(*TEST_SAUCES[2]))
-        burger.add_ingredient(Ingredient(*TEST_SAUCES[2]))
+        burger.add_ingredient(Ingredient(*SAUCES[2]))
+        burger.add_ingredient(Ingredient(*SAUCES[2]))
 
         assert len(burger.ingredients) == 2
         assert burger.ingredients[0].get_name() == burger.ingredients[1].get_name()
 
     def test_add_ingredient_adds_multiple_fillings_success(self, burger):
         """Проверяет успешное добавление нескольких разных начинок"""
-        filling1 = Ingredient(*TEST_FILLINGS[0])
-        filling2 = Ingredient(*TEST_FILLINGS[1])
+        filling1 = Ingredient(*FILLINGS[0])
+        filling2 = Ingredient(*FILLINGS[1])
     
         burger.add_ingredient(filling1)
         burger.add_ingredient(filling2)
@@ -119,12 +101,10 @@ class TestBurger:
         assert len(burger_with_four_ingredients.ingredients) == initial_count - 1
         assert removed_name not in remaining_names
         
-    def test_remove_ingredient_last_element_from_single_element_burger_success(self, burger):
+    def test_remove_ingredient_remove_single_ingredient_success(self, burger):
         """Проверяет удаление единственного ингредиента"""
-        sauce = Ingredient(*TEST_SAUCES[1])
+        sauce = Ingredient(*SAUCES[1])
         burger.add_ingredient(sauce)
-
-        assert len(burger.ingredients) == 1
         
         burger.remove_ingredient(0)
         
@@ -156,23 +136,14 @@ class TestBurger:
     
         assert len(burger_with_four_ingredients.ingredients) == initial_count
 
-    def test_remove_ingredient_index_too_large_raises_error(self, burger_with_four_ingredients):
+    @pytest.mark.parametrize("invalid_index", [4, 100])
+    def test_remove_ingredient_nonexistent_index_too_large_raises_error(self, burger_with_four_ingredients, invalid_index):
         """Проверяет, что попытка удаления ингредиента, индекс которого больше максимального допустимого, вызывает ошибку"""
-        min_valid_index = len(burger_with_four_ingredients.ingredients)
         initial_count = len(burger_with_four_ingredients.ingredients)
     
         with pytest.raises(IndexError):
-            burger_with_four_ingredients.remove_ingredient(min_valid_index + 1)
+            burger_with_four_ingredients.remove_ingredient(invalid_index + 1)
     
-        assert len(burger_with_four_ingredients.ingredients) == initial_count
-
-    def test_remove_ingredient_very_large_index_raises_error(self, burger_with_four_ingredients):
-        """Проверяет, что попытка удаления ингредиента с очень большим индексом вызывает ошибку"""
-        initial_count = len(burger_with_four_ingredients.ingredients)
-        
-        with pytest.raises(IndexError):
-            burger_with_four_ingredients.remove_ingredient(100)
-        
         assert len(burger_with_four_ingredients.ingredients) == initial_count
 
     #===============================================
